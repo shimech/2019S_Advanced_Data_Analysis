@@ -1,10 +1,11 @@
 import itertools
 import numpy as np
 from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
 
 
 # データ数
-NUM_DATA = 1000
+NUM_DATA = 100
 # 交差検証の回数
 NUM_CROSS_VALIDATION = 10
 # 1グループのデータ数
@@ -13,13 +14,15 @@ NUM_DATA_PER_GROUP = int(NUM_DATA / NUM_CROSS_VALIDATION)
 X_MIN = -3
 # x軸の最大値
 X_MAX = 3
+# ノイズ幅
+NOISE_AMPLITUDE = 0.2
 # ガウス幅のリスト
 GAUSS_WIDTH = [0.1, 1.0, 10.0]
 # 正則化パラメータのリスト
-REG_PARAM = [0.1, 1.0, 10.0]
+REG_PARAM = [0.0001, 0.1, 10.0]
 
 
-def main():
+def main() -> None:
     """
     main関数
     """
@@ -28,7 +31,7 @@ def main():
     print('Best parameters are {}'.format(best_param))
 
 
-def generate_data_set():
+def generate_data_set() -> (np.ndarray, np.ndarray):
     """
     データセットを生成
     データ数はNUM_DATA
@@ -37,15 +40,15 @@ def generate_data_set():
         y 目的変数
     """
     # 説明変数を、一様分布に従ってランダム生成
-    X = (X_MAX - X_MIN) * np.random.rand(NUM_DATA) + X_MIN
+    X = np.linspace(start=X_MIN, stop=X_MAX, num=NUM_DATA)
     # 標準正規分布に従うノイズ
-    noise = np.random.randn(NUM_DATA)
+    noise = NOISE_AMPLITUDE * np.random.randn(NUM_DATA)
     # 目的変数
     y = true_func(X) + noise
     return X, y
 
 
-def train_test_split(X, y, index_test):
+def train_test_split(X: np.ndarray, y: np.ndarray, index_test: int) -> (np.ndarray, np.ndarray, np.ndarray, np.ndarray):
     """
     訓練データとテストデータに分割する
     @param:
@@ -65,7 +68,7 @@ def train_test_split(X, y, index_test):
     return X_train, X_test, y_train, y_test
 
 
-def true_func(x):
+def true_func(x: np.ndarray) -> np.ndarray:
     """
     真の関数
     @param: x 入力ベクトル（今回は1次元）
@@ -74,7 +77,7 @@ def true_func(x):
     return np.sin(np.pi * x) / (np.pi * x) + 0.1 * x
 
 
-def gauss_kernel(a, b, gauss_width):
+def gauss_kernel(a: np.ndarray, b: np.ndarray, gauss_width: float) -> float:
     """
     ガウスカーネル
     @param:
@@ -85,7 +88,7 @@ def gauss_kernel(a, b, gauss_width):
     return np.exp(-np.linalg.norm(a - b) ** 2 / (2 * gauss_width ** 2))
 
 
-def calculate_gram_matrix(X_train, gauss_width):
+def calculate_gram_matrix(X_train: np.ndarray, gauss_width: float) -> np.ndarray:
     """
     グラム行列を計算
     @param:
@@ -102,7 +105,7 @@ def calculate_gram_matrix(X_train, gauss_width):
     return gram_matrix
 
 
-def calculate_weight(gram_matrix, reg_param, y_train):
+def calculate_weight(gram_matrix: np.ndarray, reg_param: float, y_train: np.ndarray) -> np.ndarray:
     """
     重みベクトルを計算
     @param:
@@ -119,7 +122,7 @@ def calculate_weight(gram_matrix, reg_param, y_train):
     return weight
 
 
-def calculate_kernel(X_train, X_test, gauss_width):
+def calculate_kernel(X_train: np.ndarray, X_test: np.ndarray, gauss_width: float) -> np.ndarray:
     """
     カーネルベクトルを計算
     @param:
@@ -137,7 +140,7 @@ def calculate_kernel(X_train, X_test, gauss_width):
     return kernel
 
 
-def cross_validation(X, y, gauss_width, reg_param):
+def cross_validation(X: np.ndarray, y: np.ndarray, gauss_width: float, reg_param: float) -> float:
     """
     交差検証
     @param:
@@ -164,7 +167,44 @@ def cross_validation(X, y, gauss_width, reg_param):
     return ave_err
 
 
-def grid_search(X, y):
+def predict(X: np.ndarray, y: np.ndarray, gauss_width: float, reg_param:float) -> np.ndarray:
+    """
+    予測モデル
+    @param:
+        X 説明変数
+        y 目的変数
+        gauss_width ガウス幅
+        reg_param 正則化パラメータ
+    @return: 予測値
+    """
+    gram_matrix = calculate_gram_matrix(X, gauss_width)
+    weight = calculate_weight(gram_matrix, reg_param, y)
+    return np.dot(gram_matrix, weight)
+
+
+def visualize(X: np.ndarray, y: np.ndarray, y_pred: np.ndarray, gauss_width: float, reg_param: float, err: float, i: int) -> None:
+    """
+    予測結果を可視化する
+    @param:
+        X 説明変数
+        y 目的変数
+        y_pred 予測値
+        gauss_width ガウス幅
+        reg_param 正則化パラメータ
+        err 予測値の平均二乗誤差
+        i グラフのインデクス
+    """
+    plt.subplot(3, 3, i+1)
+    plt.scatter(X, y, color='blue', marker='.', alpha=0.5, label='with noise')
+    plt.plot(X, true_func(X), color='red', label='true')
+    plt.plot(X, y_pred, color='green', label='pred')
+    plt.title('h = {}, λ = {}'.format(gauss_width, reg_param))
+    plt.text(1.0, 1.0, 'err = {0:.2f}'.format(err))
+    if i == 0:
+        plt.legend()
+
+
+def grid_search(X: np.ndarray, y: np.ndarray) -> list:
     """
     最適パラメータのグリッドサーチ
     @param:
@@ -174,14 +214,18 @@ def grid_search(X, y):
     """
     param_list = list(itertools.product(GAUSS_WIDTH, REG_PARAM))
     errs = []
-    for param in param_list:
+    for i, param in enumerate(param_list):
         gauss_width = param[0]
         reg_param = param[1]
         print('gauss_width = {}, reg_param = {}'.format(gauss_width, reg_param))
         err = cross_validation(X, y, gauss_width, reg_param)
         errs.append(err)
+        y_pred = predict(X, y, gauss_width, reg_param)
+        visualize(X, y, y_pred, gauss_width, reg_param, err, i)
     best_index = np.argmin(errs)
     print('MIN err = {}'.format(np.min(errs)))
+    plt.tight_layout()
+    plt.show()
     return param_list[best_index]
 
 
