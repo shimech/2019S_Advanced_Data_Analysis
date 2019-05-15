@@ -11,7 +11,7 @@ NUM_LABEL = 10
 # カレントディレクトリのパス
 CURRENT_DIR = os.getcwd()
 # データが入ったディレクトリのパス
-DATA_DIR = os.path.join(os.getcwd(), 'digit/')
+DATA_DIR = os.path.join(CURRENT_DIR, 'digit/')
 # ガウス幅 (ハイパーパラメータ)
 H = 1.0
 # 正則化パラメータ (ハイパーパラメータ)
@@ -44,7 +44,7 @@ def load_data(data_dir: str=DATA_DIR, mode: str='train') -> (np.ndarray, np.ndar
         X 説明変数 (256次元のベクトル)
         y 目的変数 (各データに対して、labelの位置が+1、それ以外が-1)
     """
-    files = glob.glob(os.path.join(DATA_DIR, 'digit_{}*.csv'.format(mode)))
+    files = glob.glob(os.path.join(data_dir, 'digit_{}*.csv'.format(mode)))
     files = sorted(files)
     X = []
     Y = []
@@ -102,6 +102,8 @@ def visualize(Y_test: np.ndarray, Y_pred: np.ndarray) -> None:
     hmap = heatmap(Y_test, Y_pred)
     plt.figure()
     sns.heatmap(hmap, vmin=0, annot=True, fmt='d')
+    plt.xlabel('Predicted label')
+    plt.ylabel('Correct label')
     print('A heatmap is showed.')
     plt.show()
 
