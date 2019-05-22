@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 # データ数 (必ず偶数)
 NUM_DATA = 200
 # 学習係数
-EPSILON = 0.01
+EPSILON = 0.05
 # 正則化パラメータ
-LAMBDA = 0.3
+LAMBDA = 0.01
 # エポック数
 NUM_EPOCH = 1000
 
@@ -93,6 +93,13 @@ def predict(X: np.ndarray, weight: np.ndarray) -> np.ndarray:
 
 
 def visualize(X: np.ndarray, y: np.ndarray, weight: np.ndarray) -> None:
+    """
+    決定境界を表示
+    @param:
+        X: 説明変数 (200, 3)
+        y: 目的変数 (200,)
+        weight: 重みベクトル (3,)
+    """
     index_blue = np.where(y == 1)
     index_red = np.where(y == -1)
     plt.scatter(X[index_blue][:, 1], X[index_blue][:, 2], c='blue', marker='o', alpha=0.7)
