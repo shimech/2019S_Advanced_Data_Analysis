@@ -104,7 +104,7 @@ def visualize(X: np.ndarray, y: np.ndarray, weight: np.ndarray) -> None:
     index_red = np.where(y == -1)
     plt.scatter(X[index_blue][:, 1], X[index_blue][:, 2], c='blue', marker='o', alpha=0.7)
     plt.scatter(X[index_red][:, 1], X[index_red][:, 2], c='red', marker='o', alpha=0.7)
-    plt.plot(X[:, 1], -(weight[0] * weight[1] * X[:, 1]) / weight[2], c='black')
+    plt.plot(X[:, 1], -(weight[0] + weight[1] * X[:, 1]) / weight[2], c='black')
     plt.xlim(-10, 10)
     plt.ylim(-10, 10)
     plt.show()
