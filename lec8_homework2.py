@@ -34,7 +34,9 @@ def genarate_dataset(num_data: int=NUM_DATA, num_class: int=NUM_CLASS) -> (np.nd
         X += list(X_i)
         y += y_i
     X = add_noize(np.array(X))
-    return np.array(X), np.array(y)
+    index = np.random.permutation(np.arange(num_data))
+    y = np.array(y)
+    return X[index], y[index]
 
 
 def add_noize(X: np.ndarray) -> np.ndarray:
