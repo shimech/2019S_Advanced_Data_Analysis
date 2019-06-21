@@ -2,6 +2,7 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 # データ数 (必ず偶数)
 NUM_DATA = 200
 # テストデータ数
